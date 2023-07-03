@@ -1,0 +1,380 @@
+\documentclass[12pt]{article}
+\usepackage[lecture]{preamble}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          Code Syntax Highlighting
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{fullpage}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{multirow}
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\lstset{
+%   backgroundcolor=\color{},   % choose the background color
+  basicstyle=\ttfamily,        % size of fonts used for the code
+  breaklines=true,                 % automatic line breaking only at whitespace
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  escapeinside={\%*}{*},          % if you want to add LaTeX within your code
+  keywordstyle={\bfseries \color{blue}},       % keyword style
+  stringstyle=\color{mymauve},     % string literal style
+  language=C,
+  numbers=none % Remove line numbers
+}
+% End
+
+
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          Lecture 1: Into, Number Rep
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lecture[06/20/2023]{Intro, Number Rep}
+The value of the \emph{i}th digit \emph{d} in any number base is $d \times \text{Base}^i$ where \emph{i} starts 0 and increases from right to left.
+
+\subsection*{Signed Magnitude}
+Similar to unsigned numbers but the most significant bit (first bit) represents if the number is positive or negative, this bit is called the \emph{sign bit}.
+
+The issue with this representation is that there are two representations for the number 0, and operations are slow since there is additional work required to handel the sign bit.
+\subsection*{Two's Complement}
+The convention to represent signed numbers is called \textbf{Two's Complement}. The left most bit is the sign bit, and $1111 \; ... \; 1111_{\text{two}}$ is the most negative number. The advantage twos complement has over \emph{sign and magnitude} representation is that there is only one zero.
+
+\subsubsection*{Negation Shortcut}
+Simply flip bits, then add 1 to the result.
+This reason this shortcut works is because the sum of a number and its inverted representation must be $1111 \; ... \; 1111_{\text{two}}$ \emph{(there is no carries)}.
+
+Now since $x + \overline{x} = -1 $, we have $\overline{x} + 1 = -x$
+
+\subsubsection*{Sign Extension Shortcut}
+\begin{itemize}
+    \item for positive 16 $\rightarrow$ 32 bit binary numbers, just add 16 zeros in the most significant bit
+    \item For negative 16 $\rightarrow$ 32 bit binary numbers, copy the sign bit (which is 1) 16 times, placing it on the left of the number.
+\end{itemize}
+
+This works because positive numbers have an infinite number of leading zeros and negative numbers have an infinite number of leading ones.
+
+\subsection*{One's Complement}
+A representation in which the negative of a none's complement is found by inverting each bit. So now $11\dots110_{\text{two}}$ is equal to -1. This representation is similar to twos complement but has two 0s
+\subsection*{Biased Notation}
+A notation that represents the most negative value by $00 \ldots000_{\text{two}}$ and the most positive value by $11 \ldots 111_{\text{two}}$, with zero typically having the value $10 \ldots000_{\text{two}}$, thereby biasing the number such that the number plus the bias has a nonnegative representation.
+
+In simpler words, bias notation is like unsigned representation but has a shift (a bias), shifting the range of values on the unsigned number line to the left, allowing representation of negative numbers.
+
+With this new system, to interpret a binary string in bias notation, we evaluate the number as if it was unsigned, then add the bias (the bias is usually negative). Note we do this because we shift the numbers to the left by a bias.
+
+\begin{example}[Interpreting a Stored Binary]
+    Assume we have a $-127$ bias with an 8-bit number.
+
+    To read $0b0000 \; 1001$, we treat it as if it was unsigned, which gives us 9. Then we add the bias to get our value $-118$:
+
+    $9 + (-127) = -118$
+\end{example}
+
+To store a decimal number as a binary string in bias notation, we first subtract the bias (bias is negative so basically add) then store the resulting number as an unsigned binary.
+
+\begin{lemma}
+    Subtracting a bias will never give us a negative number.
+
+    This is because the range of numbers is from $[-B, \;  2^n - 1 - B]$, where B is the magnitude of the bias. So a number $x$, will always be greater than or equal to $-B$, and obviously $x - (-B) \ge 0$.
+\end{lemma}
+
+
+\section*{Questions}
+\begin{itemize}
+    \item is right shift and left shift division and multiplication by 2 respectively?
+\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          Lecture 2: C Basics
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lecture[06/21/2023]{C Basics}
+\section*{Chapter 0: Introduction}
+
+The arguments to functions are passed by copying the value of the argument, and it is impossible for the called function to change the actual argument in the caller. When desired to achieve "call by reference," a pointer may be passed explicitly, and the function may change the object to which the pointer points.
+
+Array name are passed as the location of the array origin, so array arguments are effectively call by reference.
+
+C is not a strongly-typed language. It is relatively permissive about data conversion, although it will not automatically convert data types with the wild abandon of PL/I
+
+
+
+
+\section*{Chapter 2: Types, Operators, and Expressions}
+
+A \textbf{string constant} is a sequence of zero or more characters surrounded by double quotes. Underneath, a string is an array whos elements are single characters. The compiler automatically places the null character \lstinline|\0| at the end of each string, so the program can conveniently find the end.
+
+\subsubsection*{Bitwise Operations}
+In C, a leading 0 on an int constant implies \emph{\textbf{octal}}. A leading \lstinline|0x| indicates \emph{\textbf{hexa-decimal}}.
+
+The bitwise AND operator \lstinline|&| is used to turn off bits.
+
+The bitwise OR operator \lstinline||| is used to turn on bits.
+
+The one's operator \lstinline|~| (one's complement) is used to flip bits.
+
+
+
+\subsection{Memory Model Review}
+Memory works very similar to an array. You can think of most version of memory you work with conceptually to be one very long array,
+
+\subsubsection{The Stack}
+The stack is memeory that is automatically allocated and freed by the system, and grows from top-down.
+\textbf{What is the stack used for?}
+\begin{itemize}
+    \item Anything considered "Temporary"
+    \item This includes: local variables, local constants, arguments to functions, local information about a function call.
+\end{itemize}
+
+\textbf{Stack Frames, function calls}
+\begin{itemize}
+    \item Everyime a function is called, a new "stack frame" is allocated on the stack
+    \item Stack Frame Includes:
+          \begin{itemize}
+              \item return "instruction" address (who called me?), arguments, and space for other local variables
+          \end{itemize}
+    \item When function ends, stack frame is tossed off the stack; automatically frees memory for future stack frames.
+\end{itemize}
+
+
+\subsubsection{The Heap}
+
+
+
+
+
+\section*{Questions}
+\begin{itemize}
+    \item What is an example of local information about a function call?
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          Lecture 3: C Pointers, Arrays, Memory Management
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lecture[06/22/23]{C Pointers, Arrays, Memory Management}
+
+% TODO DELETE Section
+\lecture[06/27/23]{C Memory}
+Stack grows down, i.e, starts af FF and decreases.
+
+The stack memory is destroyed as you return from functions
+
+The heap memory does not, you are responsible for destorying (freeing) the memory when you don't need it anymore.
+
+
+\section*{Chapter 5: Pointers and Arrays}
+\begin{definition}[Pointer]
+    A pointer is a variable that contains the address of another variable. The convention to naming pointer variables is the prefix them with \lstinline|p_<name>|.
+
+    An pointer that points to an \lstinline|int| is declared as follows:
+
+    \lstinline{int *p_x;}
+
+    It says that the combination of \lstinline|*p_x| is an \lstinline|int|, that is, if the derefencing operator is used on \lstinline|p_x|, it is equivalent to a variable of type \lstinline|int|.
+\end{definition}
+
+
+\begin{itemize}
+    \item The unary operator \lstinline|&| gives the \emph{address} of an object.
+    \item The dereference operator \lstinline|*| used in the context as an operand to an address, access that address to fetch the contents to which it points to.
+\end{itemize}
+
+
+
+
+
+
+\subsection*{Pointers and Syntax}
+\begin{itemize}
+    \item pointers can occur on the left side of assignments. That is \lstinline{p_x} points to \lstinline{x}, then \\ \lstinline{*p_x = 1} sets \lstinline{x} to 1.
+    \item Normally a pointer can point to only one type, however, \lstinline{void *} is a type that can point to anything. (use sparingly)
+\end{itemize}
+
+\subsection*{Arrays}
+Arrays and pointers have a strong relationship. The name of an array is actually an address location to the zeroth element in the collection. \newline
+So saying \lstinline{p_arr = arr} is equivalent to saying \lstinline{p_arr = &arr[0]}
+
+Moreover, indexing into an array is actually using pointer arithmetic under the hood. For example: doing \lstinline{arr[3]} is equivalent to \lstinline{*(a + 3)}.
+
+\subsubsection*{Address Arithmetic}
+The only difference between an array name and a pointer is that a pointer is a variable, but an array name is a \textbf{constant}. Constructions like \lstinline{a = p_arr} or \lstinline{a++} or \lstinline{p = &a} are illegal.
+
+
+\subsubsection*{Memory Organization}
+Memory is just a large, single-dimensional array with the, that is byte-addressable, where the address acting as the index to that array. 8 bits = 1 byte, and 4 bytes = 1 word.
+
+
+
+\textbf{Type Sizes:} Assume we are working with a 32-bit system.
+\begin{itemize}
+    \item \lstinline{int} occupy 4 bytes, aka 32 bits.
+    \item \lstinline{char} occupy 1 byte
+    \item \emph{pointers} occupy 4 bytes. This is because memory address are 32 bits long in a 32-bit system (why?), therefore the pointer values, the address that the pointer points to, are also 32 bits long.
+\end{itemize}
+\begin{definition}[Endianness Systems]
+    Endianness affects how a group of bytes are stored and read in memory.
+
+    \textbf{Little-Endian:} In a little-endian system, memory is stored with the most significant byte at the height address.
+
+    \textbf{Big-Endian:} In a big-endian system, memory is stored with the most significant byte at the lowest address.
+\end{definition}
+
+\begin{example}
+    For the program below assume, the memory is drawn as such in little endian system.
+
+    \begin{lstlisting}
+        int main() {
+            int x[2]; // address of x is: 0x1000 0000
+            x[0] = -2, x[1] = 44513;
+            char y[] = "ADEL"; // address of y is: 0x1000 0010
+            char *c y;
+        }
+    \end{lstlisting}
+
+    The corresponding memory model is as follows
+
+    \begin{center}
+        \begin{tabular}{|c|>{\centering\arraybackslash}p{2cm}|>{\centering\arraybackslash}p{2cm}|>{\centering\arraybackslash}p{2cm}|>{\centering\arraybackslash}p{2cm}|}
+            \hline
+            \textbf{Address} & \textbf{Byte 0} & \textbf{Byte 1} & \textbf{Byte 2} & \textbf{Byte 3} \\
+            \hline
+            0x1000 0000      & 0xFE            & 0xFF            & 0xFF            & 0xFF            \\
+            \hline
+            0x1000 0004      & 0xE1            & 0xAD            & 0x00            & 0x00            \\
+            \hline
+            0x1000 0008      & -               & -               & -               & -               \\
+            \hline
+            0x1000 000C      & -               & -               & -               & -               \\
+            \hline
+            0x1000 0010      & 0x41            & 0x44            & 0x45            & 0x4C            \\
+            \hline
+            0x1000 0014      & 0x00            & -               & -               & -               \\
+            \hline
+            0x1000 0018      & 0x10            & 0x00            & 0x00            & 0x10            \\
+            \hline
+        \end{tabular}
+    \end{center}
+
+    \textbf{Note:} While \lstinline{ints} get stored in reverse, character arrays or strings are stored in increasing memory addresses.
+
+
+\end{example}
+
+
+\begin{itemize}
+    \item type declaration tells compiler how many bytes to fetch on each access through pointer.
+    \item
+\end{itemize}
+
+\subsubsection*{Dynamic Allocation}
+\begin{itemize}
+    \item malloc: memory Allocation
+    \item calloc: cleared allocation
+    \item realloc: re-allocation
+\end{itemize}
+
+
+68 6c 70 74 78 7c 80 84 88 8c 90
+
+
+
+
+
+\section*{Questions}
+\begin{itemize}
+    \item is there double pointers, a pointer that points to another pointer? \textbf{Yes, you write a function to increment a pointer. Here it will accept a double point as an argument}
+    \item Is there null in C? Can you initialize a pointer to be null? \textbf{Yes, C has a null keyword, NULL}
+    \item It is said that the difference between arrays and pointers is that array names is a constant, not a variable. Can you have a pointer to a constant? Why is \lstinline{p = &arr} illegal?
+
+\end{itemize}
+
+
+
+\lecture[06/27/23]{Floating Point}
+
+Just as we can show decimal numbers in scientific notation, we can also show binary numbers in scientific notation:
+$$
+    1.0_{\text{two}} \times 2^{-1}
+$$
+
+To keep a number in normalized form, we need a base that allows us to shift the binary point left or right to have on nonzero digit to the left of the decimal point. Only base 2 fulfills this since multiplication by 2 is a left shit and division is a right shift.
+
+
+\begin{definition}[Floating point]
+    Computer arithmetic that represents numbers in which the binary point is not fixed, i.e., it floats.
+    The floating-point representation is as such:\\
+
+    \begin{center}
+        \begin{tabular}{|*{32}{c}}
+            \hline
+            31                      & 30                            &                                         &  &  &  &  &  &  & 23 & 22 &  &  &  &  &  &  &  &  &  &  &  &  & \multicolumn{1}{c|}{0} \\ \hline
+
+            \multicolumn{1}{|c|}{s} & \multicolumn{9}{c|}{exponent} & \multicolumn{14}{c|}{fraction/mantissa}                                                                                          \\ \hline
+        \end{tabular}
+    \end{center}
+
+    The scientific notation in binary form of the float is a singly nonzero digit to the left of the binary point (\textbf{normalized form}) as such:
+
+    $$
+        1.\underbrace{xxxxxxxxx_{\text{two}}}_{\color{orange}{\text{mantissa/significand}}} \times 2^{\text{yyyy} \rightarrow \color{blue}{\text{exponent}}}
+    $$
+    Where $1.xxxxxxxxx$ is the significand ($0 < S < 1$), and $yyyy$ is called the exponent.
+
+    To pack more numbers in the significand, IEEE 754 makes the leading 1-bit of a normalized binary numbers implicit. So now, the mantissa is $1 + \text{23-bit significand field}$. Therefore, the simple RISC-V floating number as such:
+
+    $$
+        (-1)^S \times (1 + F) \times 2^E
+    $$
+    Where $S$ is the sign of the floating-point number, $F$ involves the value in the fraction field, generally a number between 0 and 1, also called the \emph{mantissa}. And $E$ comes from the exponent field.
+
+    Note however, float comparisons are hard with this form. The most negative exponent is all 1s, and $1_\text{ten}$ is a single 1 bit in the least significant bit. The negative number looks larger. Therefore we introduce bias notation to shift the numbers where now the most negative number is $00 \dots 00_{\text{two}}$ and the most positive as $11 \dots 11_{\text{two}}$. IEEE 754 uses a bias of 127 for single precision, and 1023 for double precision.
+
+    Biased exponent means that the value represented by a floating-point number is really:
+
+
+    $$
+        (-1)^S \times (1 + F) \times 2^{E - \text{Bias}}
+    $$
+\end{definition}
+
+
+\begin{example}
+    What is the decimal equivalent of the following IEE 754 single-precision binary floating point number?
+    \begin{center}
+        \begin{tabular}{|*{32}{c}}
+            \hline
+            31                      & 30                             &                                         &  &  &  &  &  &  & 23 & 22 &  &  &  &  &  &  &  &  &  &  &  &  & \multicolumn{1}{c|}{0} \\ \hline
+
+            \multicolumn{1}{|c|}{1} & \multicolumn{9}{c|}{1000 0001} & \multicolumn{14}{c|}{111 0000 ... 0000}                                                                                          \\ \hline
+        \end{tabular}
+    \end{center}
+
+    \begin{align}
+         & = (-1)^1 \times 1.111 \times 2^{129 - 127}                                          \\
+         & = -1 \times 1.111 \times 2^{2}                                                      \\
+         & = -1 \times 111.1                          &  & \text{shift the decimal point by 2} \\
+         & = -1 \times (4 + 2 + 1 + \frac{1}{2})                                               \\
+         & =  -7.5
+    \end{align}
+\end{example}
+
+\subsection*{Step Size}
+Because we have a fixed \# of bits, we cannot represent all numbers. \textbf{Step size} is the spacing between consecutive floats with a given exponent.
+
+What we really are asking for is what is the next representable number after y? before y?
+
+The next step size to why is just adding y to the smallest bit in the significand times the same exponent.
+$$
+    y + ((0.0\dots001) \times 2^{(E - Bias)})
+$$
+
+Note we multiply by the same exponent because y decimal was shifted, so we also need to shift the smallest bit decimal to the same position.
+
+\emph{Note:} the bigger the exponent, the bigger the step size since it's shifted more.
+And the smaller the exponent, the smaller the step size
+
+
+\subsection*{Representing Zero}
+Note: Zero has no normalized representation (there is always an implicit 1 in the significand)
+\end{document}
