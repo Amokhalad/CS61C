@@ -377,4 +377,30 @@ And the smaller the exponent, the smaller the step size
 
 \subsection*{Representing Zero}
 Note: Zero has no normalized representation (there is always an implicit 1 in the significand)
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          Lecture 6: Risc-V Intro
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lecture[06/28/23]{Risc-V Intro}The operands of arithmetic instructions are restricted, in that they must be from a limited number of special locations built directly in hardware called \emph{registers}.
+\begin{definition}[Registers]
+    Registers are primitives used in hardware design, often thought of as the "bricks of computer construction". The size of a register in RISC-V architecture is 32 bits, aka 1 word.
+
+    There is a limited number of registers, 32 registers. The reason for the limit of 32 registers is because of the underlying design principles of hardware; \textbf{smaller is faster.} Accessing registers takes less time and uses much less energy than accessing memory.
+
+
+\end{definition}
+
+In code, we usually have more complex data structures such as arrays. These data structures usually contain more data elements than there are registers. How can a computer represent and access such large structures? They are kept in memory and accessed via instructions that transfer data between memory and registers. Such instructions are called \textbf{data transfer instructions.}
+
+It is the computer job to associate program variables with registers. Usually a program contains many more variables than computer registers. The compiler tries to keep the most frequently used variables in registers and places the rest in memory, data transfer instructions to between registers and memory. This process is called \emph{spilling registers}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          Lecture 7: RISC-V Procedures
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lecture[06/29/23]{RISC-V Procedures}
+
+
 \end{document}
