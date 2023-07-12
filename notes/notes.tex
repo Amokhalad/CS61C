@@ -25,6 +25,11 @@
 }
 % End
 
+% package for images
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+
+
 
 
 \begin{document}
@@ -401,6 +406,110 @@ It is the computer job to associate program variables with registers. Usually a 
 %          Lecture 7: RISC-V Procedures
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \lecture[06/29/23]{RISC-V Procedures}
+\subsection*{Calling Convention}
+
+Saved Registers:
+\begin{itemize}
+    \item s0-s11 ra
+    \item should not be modified by functions (can be used, but must be restored).
+\end{itemize}
+
+Temporary Registers:
+\begin{itemize}
+    \item {\color{red} TODO}
+\end{itemize}
 
 
+Stack
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          Lecture 8: RISC-V Instruction Format
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lecture[06/29/23]{RISC-V Instruction Format}
+Instructions are kept in the computer as a series of high and low (1s and 0s) electronic signals and may be represented as numbers. Placing these numbers side by side forms the instruction. The numeric version of instructions is called \textbf{machine language}, and a sequence of such instructions is called \emph{machine code}.
+
+Instructions in the numeric version are split up into \textbf{fields}, which are given names to make them easier to discuss. Here is the meaning of each name of the fields in RISC-V instructions:
+\begin{itemize}
+    \item \emph{\textbf{opcode:}} Instruction identifier. The field that denotes the operation and format of an instruction, and is always the last 7 bits in all instruction formats.
+    \item \emph{rd:} The register destination operand. It gets the result of the operation.
+    \item \emph{funct3:} An additional opcode field.
+    \item \emph{rs1:} The first register source operand.
+    \item \emph{rs2:} The second register source operand.
+    \item \emph{funct7:} An additional opcode field.
+\end{itemize}
+
+Different instructions require different fields sizes. For example, \lstinline{add} requires 3 registers, \lstinline{addi} requires 2 registers and 1 immediate. If rs2 took the value of the immediate, the maximum size it could hold is $2^5 - 1$ (31 which is pretty small) since rs2 is 5 bits long. Since RISC-V designers decided to keep all instructions the same length (32 bits), this requires distinct instruction formats for different kinds of instructions.
+
+The formats are distinguished by the values in the opcode field (check reference sheet to see the different types of formats).
+
+\subsection*{R-Type}
+Designed for instructions with 3 registers and no immediate.
+
+Since each register is identified by it's number, we'd need 5 bits to encode 32 different values ($2^5 = 32$).
+
+
+\subsection*{I-Type}
+Designed for instructions with 2 registers (rs1 and rd) and 1 immediate.
+Some instructions that use I-Types include arithmetic operations with immedates, load func
+
+\lecture[07/10/23]{Combinational Logic, FSM}
+
+\lecture[07/11/23]{Synchronous Digital Systems}
+\section*{A.2: Gates, and Logic Equations}
+Blocks without memory are called \emph{combinational}; the output of a combinational block depends only on the current input.
+
+In blocks with memory, the output can depend on both the current input and the value stored in memory, which is called the \emph{state} of the logic block.
+
+\begin{definition}[Combinational Logic]
+    A logic system whose blocks do not contain memory and hence compute the same output given the same input.
+\end{definition}
+
+Since combinational logic block contains no memory, it can be completely specified by defining the values of the outputs for each possible set of input values. Such a description is normally given as a \emph{truth table.} Truth tables can completely describe any combinational logic function; however; they grow in size quickly ($2^n$ entries for $n$ inputs) making them hard to understand.
+
+\subsection*{Boolean Algebra}
+One alternative to truth tables is to express the logic function with logic equations. In boolean algebra, all the variables have the values 0 or 1, and in typical formulations, there are three operators:
+
+\begin{itemize}
+    \item OR operator, written as $+$.
+    \item AND operator, written as $\cdot$.
+    \item unary NOT operator, written as $\overline{A}$
+\end{itemize}
+
+Any set of logic functions can be written as a series of equations with an output on the left-hand side of each equation and a formula consisting of variables and the three operators above on the right-hand side.
+
+\subsection*{Gates}
+A device that implements basic logic functions, such as AND or OR.
+
+Since both AND and OR are commutative and associative, they can take in multiple inputs, with the output equal to the AND or OR of all the inputs.
+
+Fact: all logic functions can be constructed with only a single gate type, if that gate is inverting. NOR and NAND gates are called \emph{universal}, since any logic function can be built using this one gate type.
+
+\section*{A.3: Combinational Logic}
+ {\color{red} TODO}
+
+
+\subsubsection*{Questions}
+\begin{itemize}
+    \item is the memory contained inside the logic block called the state? or is the output called the state?
+    \item
+\end{itemize}
+
+
+\lecture[07/11/23]{Synchronous Digital Systems}
+\subsubsection*{Clock:}
+\begin{itemize}
+    \item Rising Edge: Time when the clock switches from 0 to 1
+    \item Falling Edge: Time when the clock switches from 1 to 0.
+    \item Clock Peroid: Time between rising edges.
+    \item Clock Frequency: Number of rising edges per second.
+\end{itemize}
+
+\textbf{Flop Flop:}
+The output is the value of the input when the clock is at a high value at the \textbf{RISING EDGE.}
 \end{document}
+
+
+
+
+
