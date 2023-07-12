@@ -484,12 +484,45 @@ These two instructions are used in two pseudoinstructions:
         lui to 0x12345 // 20 bit long immediate (5 * 4)
         addi t0 t0 0x678 // 12 bit immediate (fits in addi immediate field.)
     \end{lstlisting}
-    * \emph{Note there is a corner case when the immediate in an li instructions has FFF in the 3 right most bits, since addi with an immediate of FFF subtracts -1. }
+    * \emph{Note there is a corner case when the immediate in an li instructions has FFF in the 3 right most bits, since addi with an immediate of FFF subtracts $-1$. }
 \end{example}
 
 \subsection*{B-Type}
-Branch Instructions.
+B for branch instructions. Recall, labels don't actually exist. When translating RISC-V to machine language, we need to convert all labels into explicit references to a particular line of code. Since we want to be able to move around code blocks in memory, we prefer to use \textbf{\emph{relative addressing}} instead of absolute addresses.
 
+Therefore, when writing code using labels, we first convert the label into an \emph{offset}, which specifies how many bytes off from the current location (\lstinline{PC} - program counter) we would need to jump to get to that label.
+
+\begin{example}[Converting Labels to Offsets]
+    Consider the following code
+    \begin{lstlisting}
+        beq x0, x0, target // + 2 instructions = 8 bytes, so offset = 8
+        addi x0, x0, 100
+        target: addi x0, x0, 100 
+        j target           // - 1 instruction = -4 bytes, so offset = -4
+        li t0 0x5F3759DF
+        beq t0, t0, target // -4 instructions = -16 bytes, so offset = -16
+    \end{lstlisting}
+    \emph{* note li is a pseudoinstructions for 2 instructions}
+\end{example}
+
+\subsubsection*{Storing Offsets:}
+Note all of the previous offsets were multiples of 4 since each instruction is 4 bytes of memory, so all offsets should be multiples of 4. Therefore, the last two bits off the offset are always going to be 0s. For optimization purposes, we don't store the lowest bit of an offset immediate, brining forth the assuming that the LSB an offset is 0.
+
+In the instruction format, the immediate representing the offset is stored in a strange pattern:
+\lstinline{imm[12 | 10:5]}  for bits 31 through 25 of the B-Type format, and \lstinline{imm[4:1 | 11]} for bits 11 thorough 7.
+\begin{itemize}
+    \item if we have the binary $\text{0b A BCDE FGHI JKLM}$ (where each letter was a bit), the first immediate field would store $\text{0b ACD EFGH}$.
+    \item the second immediate field would store $\text{0b I JKLB}$. \emph{note bit M isn't stored}
+\end{itemize}
+
+
+
+\subsection*{J-Type}
+J for jump instruction, \lstinline{jal}. This instruction uses only 1 destination register and an immediate example: \lstinline{jal ra label}, so we can use the U-type format to have a larger immediate, but the immediate is stored in a strange format, to simplify the underlying circuit.
+
+The immediate is stored as: \lstinline{imm[20 | 10:1 | 11 | 19:2]}
+
+For example: If we had the binary $\text{0xA BCDE FGHI JKLM NOPQ RSTU}$ (where each letter was a bit), the data would be stored as 0b $\text{AKLM NOPQ RSTJ BCDE FGHI}$
 
 
 
@@ -532,11 +565,11 @@ In blocks with memory, the output can depend on both the current input and the v
 Since combinational logic block contains no memory, it can be completely specified by defining the values of the outputs for each possible set of input values. Such a description is normally given as a \emph{truth table.} Truth tables can completely describe any combinational logic function; however; they grow in size quickly ($2^n$ entries for $n$ inputs) making them hard to understand.
 
 \subsection*{Boolean Algebra}
-One alternative to truth tables is to express the logic function with logic equations. In boolean algebra, all the variables have the values 0 or 1, and in typical formulations, there are three operators:
+Used to represent signals in logic circuits. One alternative to truth tables is to express the logic function with logic equations. In boolean algebra, all the variables have the values 0 or 1, and in typical formulations, there are three operators:
 
 \begin{itemize}
-    \item OR operator, written as $+$.
-    \item AND operator, written as $\cdot$.
+    \item OR operator, written as $A + B$.
+    \item AND operator, written as $A \cdot B$.
     \item unary NOT operator, written as $\overline{A}$
 \end{itemize}
 
@@ -552,6 +585,8 @@ Fact: all logic functions can be constructed with only a single gate type, if th
 \section*{A.3: Combinational Logic}
  {\color{red} TODO}
 
+
+\section*{FSM: Finite State Machines}
 
 \subsubsection*{Questions}
 \begin{itemize}
@@ -571,6 +606,8 @@ Fact: all logic functions can be constructed with only a single gate type, if th
 
 \textbf{Flop Flop:}
 The output is the value of the input when the clock is at a high value at the \textbf{RISING EDGE.}
+
+
 \end{document}
 
 
