@@ -426,7 +426,7 @@ Stack
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %          Lecture 8: RISC-V Instruction Format
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\lecture[06/29/23]{RISC-V Instruction Format}
+\lecture[07/05/23]{RISC-V Instruction Format}
 Instructions are kept in the computer as a series of high and low (1s and 0s) electronic signals and may be represented as numbers. Placing these numbers side by side forms the instruction. The numeric version of instructions is called \textbf{machine language}, and a sequence of such instructions is called \emph{machine code}.
 
 Instructions in the numeric version are split up into \textbf{fields}, which are given names to make them easier to discuss. Here is the meaning of each name of the fields in RISC-V instructions:
@@ -451,7 +451,71 @@ Since each register is identified by it's number, we'd need 5 bits to encode 32 
 
 \subsection*{I-Type}
 Designed for instructions with 2 registers (rs1 and rd) and 1 immediate.
-Some instructions that use I-Types include arithmetic operations with immedates, load func
+Some instructions that use I-Types include arithmetic operations with immedates and load instruction.
+
+In the R-Type, there is no funct7 field, instead, that space is used by the immediate the be able to get larger constants (12 bits long immediate)
+
+The immediate field is in unsigned representation, so the range of values is [-2048, 2047] [$-2^{11}, 2^{11} - 1$]
+
+\subsection*{I*-Type}
+Used for shifting with immediates (slli, srli, srai) where the immediate field is reduced to 5 bits long. This is because in shifting a 32-bit number, you never need to shift more than 32 times.
+
+\subsection*{S-Type}
+S for \textbf{store instructions}. Designed for instructions with 2 source registers and an immediate.
+
+
+\subsection*{U-Type}
+Used for \lstinline{lui} (\emph{load upper immediate}) and \lstinline{auipc} (\emph{add upper immediate to program counter}) instructions.
+
+These two instructions are used in two pseudoinstructions:
+\begin{itemize}
+    \item \lstinline{li}: load immediate
+    \item \lstinline{la}: load address
+\end{itemize}
+
+\begin{example}[\lstinline{li} with Large Immediate]
+    consider this instruction:
+    \begin{lstlisting}
+        li t0 0x12345678
+    \end{lstlisting}
+    We cannot just translate this instruction to: \lstinline{addi t0 x0 0x12345678} since the immediate size of \lstinline{addi} is 5 bits long. Assuming that lui has an immediate size of 20 bits (which it does), the solution then is to do this:
+
+    \begin{lstlisting}
+        lui to 0x12345 // 20 bit long immediate (5 * 4)
+        addi t0 t0 0x678 // 12 bit immediate (fits in addi immediate field.)
+    \end{lstlisting}
+    * \emph{Note there is a corner case when the immediate in an li instructions has FFF in the 3 right most bits, since addi with an immediate of FFF subtracts -1. }
+\end{example}
+
+\subsection*{B-Type}
+Branch Instructions.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          LECTURE 9: Compiler, Assembler, Linker, Loader
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lecture[07/06/23]{Compiler, Assembler, Linker, Loader}
+\subsection*{Compiler}
+The compiler transforms the C program into an \textbf{assembly language} program, a symbolic form of what the machine understands.
+
+\begin{definition}[Assembly Language]
+    a symbolic language that can be translated into binary machine language.
+\end{definition}
+
+\subsection*{Assembler}
+The assembler converts \textbf{pseudoinstructions} into the machine language equivalent of the actual assembly language instruction. It also converts branches to faraway locations into a branch and a jump.
+\begin{definition}[Pseudoinstructions]
+    A common variation of assembly language instructions often treated as if it were an instruction in its own right.
+\end{definition}
+The primary task of an assembler is assembly into machine code. The assembler turns the assembly language program into an \emph{object file}, which is a combination of machine language instructions, data, and information needed to place instructions properly in memory.
+
+To Produce binary version of each instruction into assembly language program, the assembler must determine the address corresponding to all labels. Assemblers keep track of labels used in branches and data transfer instruction in a \textbf{symbol table}.
+
+\subsection*{Linker}
+
+
 
 \lecture[07/10/23]{Combinational Logic, FSM}
 
