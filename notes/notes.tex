@@ -529,7 +529,7 @@ For example: If we had the binary $\text{0xA BCDE FGHI JKLM NOPQ RSTU}$ (where e
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %          LECTURE 9: Compiler, Assembler, Linker, Loader
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\lecture[07/06/23]{Compiler, Assembler, Linker, Loader}
+\lecture[07/06/23]{Compiler, Assembler, Linker, Loader: CALL}
 \subsection*{Compiler}
 The compiler transforms the C program into an \textbf{assembly language} program, a symbolic form of what the machine understands.
 
@@ -547,12 +547,15 @@ The primary task of an assembler is assembly into machine code. The assembler tu
 To Produce binary version of each instruction into assembly language program, the assembler must determine the address corresponding to all labels. Assemblers keep track of labels used in branches and data transfer instruction in a \textbf{symbol table}.
 
 \subsection*{Linker}
+The linker produces an \textbf{executable file} that can be run on a computer.
+The linker resolves all references, resolving all undefined labels, patching both internal and external references.
 
+\subsection*{Loader}
+A systems program that places an object programs n main memory is that it is ready to execute.
 
 
 \lecture[07/10/23]{Combinational Logic, FSM}
 
-\lecture[07/11/23]{Synchronous Digital Systems}
 \section*{A.2: Gates, and Logic Equations}
 Blocks without memory are called \emph{combinational}; the output of a combinational block depends only on the current input.
 
@@ -587,6 +590,7 @@ Fact: all logic functions can be constructed with only a single gate type, if th
 
 
 \section*{FSM: Finite State Machines}
+ {\color{red} TODO}
 
 \subsubsection*{Questions}
 \begin{itemize}
@@ -594,20 +598,83 @@ Fact: all logic functions can be constructed with only a single gate type, if th
     \item
 \end{itemize}
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          Lecture 11: Synchronous Digital Systems
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \lecture[07/11/23]{Synchronous Digital Systems}
+Synchronous Digital Systems are made up of two basic types of circuits. Combinational Logic circuits, and state elements. \textbf{Combinational logic} circuits change based on their inputs after whatever propagation delay is associated with them. Their like a function.
+
+\section*{State Elements}
+\textbf{State elements,} on the other hand can \emph{remember} their inputs even after the inputs change. State elements change value based on a \emph{clock signal.}
 \subsubsection*{Clock:}
 \begin{itemize}
     \item Rising Edge: Time when the clock switches from 0 to 1
     \item Falling Edge: Time when the clock switches from 1 to 0.
-    \item Clock Peroid: Time between rising edges.
+    \item Clock Period: Time between rising edges.
     \item Clock Frequency: Number of rising edges per second.
 \end{itemize}
 
-\textbf{Flop Flop:}
-The output is the value of the input when the clock is at a high value at the \textbf{RISING EDGE.}
+Like logic gates, registers also have a delay associated with them before their output will reflect the input that was sampled at the rising edge of the clock. This is called \textbf{clk-to-q} delay ("Q" often indicates the output.) This is the time between the rising edge of the clock signal and the time the register's output reflect the input change.
+
+\subsection*{Flip Flop}
+A Flip Flop is a logic element that 'stores state'.
+On the rising edge of the clock, the input is sampled and transferred to the output. At all other times, the input is ignored.
+
+For circuits with multiple flip flops, the flip flop respond to the input at a single time instant when the click is at a rising edge.
+
+\subsubsection*{Time Constraints}
+Flip flop sometimes have what's called time constraints. ($t_{\text{setup}}$, $t_{\text{hold}}$) These are \textbf{not} delays, but referred to as constraints because they must be followed inorder for the circuit to work properly. Below is the definition of the timing constraints:
+
+\textbf{setup time}: $t_{\text{setup}}$
+\begin{itemize}
+    \item This is the amount of time that the flip flop input needs to be stable \emph{\textbf{BEFORE}} the positive edge of the clock.
+\end{itemize}
 
 
+\textbf{hold time}: $t_{\text{hold}}$
+\begin{itemize}
+    \item the minimum amount of time that the flip-flop input needs to be stable \emph{\textbf{AFTER}} the positive edge of the clock.
+\end{itemize}
+
+\subsubsection*{Satisfying setup time constraint (minimum clock period)}
+Note during a single clock period, there is a clk-to-q time delay, and some logic delay (assuming there is logic elements in the circuit), and finally a setup time constraint for the next rising edge. Therefore, we need to have a clock period to be long enough so that it could hold all of these timing constraints and delays.
+
+$$t_{\text{clk-to-q}} + t_{\text{logic max}} + t_{\text{setup}} \le t_{\text{clk-period}}$$
+
+\subsubsection*{Satisfying hold time constraint}
+It is easy to see that for a circuit without a logic elements, the hold time for a flipflop should always be less than or equal to the clk-to-q.
+
+However, when circuits contain logic elements, which have delays of their own, we'd need to hold time to be short enough so that it is less than the sum of the clk-to-q and the shortest logic delay path. Therefore, the inequality needed so that we don't violate the hold time constraint is as such:
+
+$$
+    t_{\text{clk-to-q}} + t_{\text{logic min}} \ge t_{\text{hold}}
+$$
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          Lecture 12: Single Cycle Datapath
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\lecture[07/12/23]{RISC-V Single Cycle Datapath}
+
+For every implementation of instructions; the first two steps are identical:
+\begin{enumerate}
+    \item Send the \emph{program counter} (PC) to the memory that contains the code and fetch the instruction from that memory.
+    \item Read one or two registers, using fields of the instruction to select the registers to read. For the \lstinline{lw} instruction, we need to read only one register, but most other instructions require reading two registers.
+\end{enumerate}
+
+After these two steps, the actions required to complete the instruction depend on the instruction class (memory-reference, arithmetic-logical, and branches)
+
+\begin{definition}
+
+\end{definition}
+
+
+
+
+
+
+\lecture[07/17/23]{Single Cycle Datapath Controls, Intro to Pipelining}
 \end{document}
 
 
