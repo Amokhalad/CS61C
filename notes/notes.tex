@@ -657,24 +657,279 @@ $$
 
 \lecture[07/12/23]{RISC-V Single Cycle Datapath}
 
-For every implementation of instructions; the first two steps are identical:
+For every implementation of instructions; the first two steps are identical, the other steps are dependent on the type of instruction.
 \begin{enumerate}
     \item Send the \emph{program counter} (PC) to the memory that contains the code and fetch the instruction from that memory.
     \item Read one or two registers, using fields of the instruction to select the registers to read. For the \lstinline{lw} instruction, we need to read only one register, but most other instructions require reading two registers.
+    \item execute the operation or calculate an address
+    \item Access an operand in data memory (if necessary)
+    \item Write the result into a register (if necessary)
 \end{enumerate}
 
-After these two steps, the actions required to complete the instruction depend on the instruction class (memory-reference, arithmetic-logical, and branches)
+After these two steps, the actions required to complete the instruction depend on the instruction class (memory-reference, arithmetic-logical, or branches).
 
-\begin{definition}
-
+\begin{definition}[Control Unit]
+    A \emph{control unit} has an instruction as an input, and  is used to determine how to set the control lines for the functional units and two of the multiplexors.
 \end{definition}
 
 
+\subsection*{Building a Datapath}
+To execute any instruction, we must start by fetching the instruction from memory (code section of the memory?)
+To prepare for executing the next instruction, we must also incremenet the PC so that it points at the next instruction, 4 bytes later.
 
+The processor's 32 general-purpose registers are stored in a structure called a \textbf{register file}.
+\begin{definition}[Register File]
+    A state element that consists of a set of registers that can be read and written by supplying a register number to be accessed. A register file always outputs the contents of the registers corresponding to the Read register inputs  on the outputs; no other control inputs are needed. However, a register write must be explicitly indicated by asserting the write control signal. This means that a register file is a combinational read, but a sequential write.
 
+    \begin{center}
+        \includegraphics[scale=0.4]{images/register-file.png}
+    \end{center}
 
+    Note: the 5 on top of the register number arrows indicate that the register numbers is 5 bits wide, and those bits come from a state element called \emph{instruction memory}, which is where the machine code of our instructions lie.
 
+\end{definition}
+\subsection*{R-Type Instructions}
+Recall R-format instructions read two registers (\lstinline{rs1} and \lstinline{rs2}), perform an ALU operation on the contents of the registers and write the result to a register (\lstinline{rd}): \lstinline{add rd rs1 rs2}
+
+With that, this means that we need to \emph{read} two data words from the register file and \emph{write} one data word into the register file for each R type instruction.
+
+\textbf{Reading:}\\
+For each word to be read from the registers, we need an input to the register file that specifies the \emph{register number} to be read and an output from the register file that will carry the value that has been read from the registers ({\color{red} two outputs? yes.})
+
+\textbf{Writing:}\\
+To write a data word, we will need two inputs: one to specify the register number to be written and one to supply the \emph{data} to be written into that register. Writes are controlled by the write control signal, which must be \emph{\textbf{asserted}} for a write to occur at the clock edge.
+
+\subsection*{I Type Instructions}
+\subsubsection*{\lstinline{addi}}
+Note that for an addi, the output \textbf{Read Data 2} from the register file will a contain garbage value since \textbf{rs2} is not a field of I type instructions, instead it has a 12 bit immediate.
+
+We therefore directly extract the immediate from the instruction memory, and put an arrow directly to the ALU. Moreover, we'd need a unit to \textbf{sign extend} the immediate, call this unit \emph{immediate generator} and a multiplexor to select what will go into the ALU, the Read data 2, or the immediate.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.3]{images/addi-datapath.png}
+    \caption{Data path for addi instruction.}
+\end{figure}
+
+\subsubsection*{Load and Store instructions}
+Note a load instruction is a I type instruction with the structure as such:
+
+\lstinline{lw rd imm(rs1)}
+
+where \lstinline{rs1 + imm} is the address we are reading from and we write the value at that address to \lstinline{rd}. And a store instruction is similar except instead of writing to a register, we are writing to memory.
+
+The current data path does not work for load and store instructions, why? Because we don't have a unit for \textbf{data memory} to read from and write to. So lets introduce it.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{images/memory-instructions-datapath.png}
+    \caption{The datapath for memory instructions and the R-type instruction}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          Lecture 13: Single Cycle Datapath Controls, Intro to Pipelining
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \lecture[07/17/23]{Single Cycle Datapath Controls, Intro to Pipelining}
+\subsection*{Pipelining}
+\begin{definition}[Pipelining]
+    Pipelining is one example of instruction-level parallelism, an implementation technique in which multiple instructions are overlapped in execution.
+\end{definition}
+
+Note pipelining does not decrease the time to complete a single instruction, it instead increases instruction  \emph{throughput} since it allows multiple instructions to be processed concurrently, decreasing the total time to complete the work.
+
+\subsubsection*{Pipeline Hazards}
+There are situations in pipelining when the next instruction cannot execute in the following clock cycle. These events are called \emph{hazards}, and there are three different types.
+
+\lecture[...]{...}
+\lecture[07/20/23]{Parallelism I - Data-Level}
+
+\subsection*{Terminology}
+\begin{itemize}
+    \item Processors are often called cores in a multicore chip.
+    \item SIMD: Single Instruction, Multiple Data. SIMD computers operate on vectors of data. These vectors are specialized vector registers which store 129, 256, or even 512 bits.
+    \item For example, a SIMD instruction might add 64 numbers by sending 64 data streams to 64 ALUs to form 64 sums within a single clock cycle.
+\end{itemize}
+
+\subsection*{Chapter 6.1: Introduction}
+\begin{itemize}
+    \item Computer architects seek to create powerful computers by connecting many smaller ones, leading to the concept of multiprocessors.
+    \item Multiprocessors can also improve system availability by supporting operation even in the presence of hardware failures.
+    \item Multicore microprocessors, which are expected to increase with Moore's Law, are mostly Shared Memory Processors (SMPs) sharing a single address space.
+    \item The industry faces the challenge of creating hardware and software that can efficiently execute parallel processing programs with an increasing number of cores.
+\end{itemize}
+
+\subsection*{Chapter 6.2: The Difficulty of Creating Parallel Processing Programs}
+\begin{itemize}
+    \item Creating efficient parallel processing programs has proven to be challenging, particularly as the number of processors increases.
+    \item Uniprocessor design techniques, such as instruction-level parallelism, have reduced the need for rewriting programs for multiprocessors.
+    \item Efficient parallel programs require breaking tasks into equal-sized pieces, load balancing, and addressing synchronization and communication overhead.
+    \item Amdahl's Law reminds us that even small portions of a program must be parallelized to fully utilize many cores.
+\end{itemize}
+
+\subsection*{Chapter 6.3: SISD, MIMD, SIMD, SPMD, and Vector}
+\begin{itemize}
+    \item Parallel hardware can be categorized based on the number of instruction streams and data streams.
+    \item SISD (Single Instruction Single Data) refers to conventional uniprocessors with one instruction stream and one data stream.
+    \item MIMD (Multiple Instruction Multiple Data) refers to conventional multiprocessors with multiple instruction streams and multiple data streams.
+    \item SPMD (Single Program Multiple Data) is a programming style for MIMD computers where a single program runs on all processors.
+    \item SIMD (Single Instruction Multiple Data) operates on vectors of data, executing the same instruction simultaneously on multiple data streams.
+    \item SIMD's virtues include synchronized execution units and reduced instruction bandwidth.
+    \item SIMD works best for data-level parallelism, where arrays are processed in for loops.
+    \item SIMD's weakness lies in case or switch statements, leading to reduced performance.
+    \item SIMD in x86 architecture includes Multimedia Extensions (MMX), Streaming SIMD Extensions (SSE), and Advanced Vector Extensions (AVX).
+    \item Vector architectures, a form of SIMD, involve pipelined execution units and a set of vector registers.
+    \item Vector instructions specify a significant amount of work, reducing dynamic instruction bandwidth and control hazards.
+    \item Vector architectures are known for their ease in handling data-level parallelism.
+    \item Vector instructions accessing memory have a known access pattern, benefiting memory access efficiency.
+    \item Vector units are advantageous if the application domain can often use them.
+    \item Vector architectures and multimedia extensions differ in the number of operations specified and the handling of data transfers.
+    \item Vectors support both strided and indexed accesses for data in memory.
+    \item Vector arithmetic instructions usually operate on specific elements of vector registers, facilitating parallelism through multiple vector lanes.
+\end{itemize}
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          LECTURE 16: Thread - Level Parallelism
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lecture[07/20/23]{Parallelism II - Thread-level}
+\begin{definition}[Hardware Multithreading]
+    Increasing utilization of a processor by switching to another thread when one thread is stalled. Hardware multithreading allows multiple threads to share the functional units of a \emph{single} processor in an overlapping fashion to try to utilize the hardware resources efficiently. Note to permit this sharing, the processor must duplicate the independent state of each thread.
+\end{definition}
+
+\begin{definition}[Thread]
+    A thread includes the program counter, the register state, and the stack. It is a lightweight
+\end{definition}
+
+\subsection*{SIMD: Single Instruction, Multiple Data}
+\begin{itemize}
+    \item Computer applies a single stream to multiple data streams.
+    \item Note this will require multiple processing units (1 for each element in the vector) inorder to compute the result of a vector operation.
+\end{itemize}
+
+\subsection*{MISD: Multiple Instruction, Single Data}
+\begin{itemize}
+    \item Computer applies multiple different operations to the same data.
+\end{itemize}
+
+\subsection*{MIMD: Multiple Instruction, Multiple Data}
+\begin{itemize}
+    \item Computer applies multiple different operations to multiple different data.
+\end{itemize}
+
+\section*{Parallel Threads}
+\begin{definition}[Threads]
+    A thread stands for "thread of execution", is a single stream of instructions.
+    \begin{itemize}
+        \item a program / process can split, or fork itself into separate threads, which can (in theory) execute simultaneously.
+    \end{itemize}
+    With a single core, a single CPU can execute many threads by \textbf{time sharing.} (note a single core can run one thread at any given time.)
+
+    The CPU is composed of multiple cores, thus allowing multiple threads to be run simultaneously.
+\end{definition}
+Each core provides one or more hardware threads that actively execute instructions
+
+The \textbf{Operating System} is responsible for managing which threads get run on which CPUs (among other tasks)
+
+\subsection*{Parallel Programming}. In order to create a parallel section: you use \lstinline{#pragma omp parallel ... }
+
+The code in the parallel section gets run on all threads, so we need some way to distinguish threads
+
+Recall that OS chooses which ever thread it wants to run, and can change threads at any time. Therefore a program that uses multithreading is no longer deterministic, i.e. it has random behavior.
+
+A multithreaded program is only considered correct if ANY interlacing of threads yield the same result.
+
+In general with OpenMP, variables declared inside the parallel block will be private to each thread, but variables declared outside a parallel block will be shared across all threads
+
+OpenMP has built-in functionality for dividing up the work of for loops among threads. To tell openMP to split up the work among multiple threads, you would use \lstinline{#pragma omp parallel for}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          LECTURE 18: Caches
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lecture[...]{...}
+\lecture[07/25/23]{Caches I}
+Caches – a safe place to store things. \emph{Cache} was the name chosen to represent the level of the memory hierarchy between the processor and main memory.
+
+The simpliest way to assign a location in the cache for each word in memory is to assigned the cache location based on the address of the word in memory. This cache structure is called \textbf{direct mapped}, since each memory location is mapped directly to exactly one location in the cache. Almost all direct-mapped caches use this mapping to the a block:
+
+$$
+    \text{(Block address) modulo (Number of blocks in the cache)}
+$$
+
+If the cache size (number of blocks in the cache) is a power of 2, then modulo can be computed simply by using the low-order $\log_2\text{(cache size in blocks)}$ bits of the address. For example, an 8 block cache uses the 3 lowest bits ($2^3 = 8$) of the block address to index the blocks.
+
+Note that because multiple memory locations can map to the same cache location, we need a way to know whether the data in the cache corresponds to a requested block/word. We solve this by adding a set of \textbf{tags}.
+\begin{definition}[Tag]
+    A field in a table used for a memory hierarchy that contains the address information required to identify whether the associated block in the hierarchy corresponds to a requested word. Tags therefore will needs just to contain the upper portion of the address, i.e., the bits not used as an index into the cache.
+\end{definition}
+
+We also needs a way to recognize that a cache block does not have valid information. We can't just set the blocks to all zeros at indecies where the cache is not valid since all zeros might actually be a valid entry. Thus, the most common method is to add a separate \textbf{valid bit}.
+\begin{definition}[Valid Bit]
+    A field in the tables of a memory hierarchy that indicates that the associated block in the hierarchy contains valid data.
+\end{definition}
+\subsection*{How is the hierarchy managed?}
+\begin{enumerate}
+    \item Communicaition between Registers $\leftrightarrow$ Memory: By \textbf{compiler} (or assembly level programmer)
+    \item Communicaition between Cache $\leftrightarrow$ Main memory: By the \textbf{cache controller hardware}.
+    \item Main Memory $\leftrightarrow$ Disks: By the \textbf{OS} (virtual memory)
+\end{enumerate}
+
+\subsection*{Locality}
+Main idea: predict what emmory might be accessed next based on what memory was already accessed.
+
+The two types of locality are:
+\begin{enumerate}
+    \item Temporal Locality
+          \begin{itemize}
+              \item Means: if a memory location is referenced then it will tend to be referenced again soon.
+              \item Consequences: keep most recently accessed data items in our cache
+          \end{itemize}
+    \item Spatial Locality
+          \begin{itemize}
+              \item Means: if a memory location is references, the locations with nearby addresses will tend to be referenced soon.
+              \item Consequences: move blocks consisting of contiguous words instead of just one word at a time.
+              \item To faciltate this, we will divide memory into "blocks" of size some power of 2.
+              \item Blocks will be assigned  a number, called their tags
+          \end{itemize}
+\end{enumerate}
+
+\subsection*{Fully Associative Cache}
+When a memory access occurs, here are the steps that happen.
+\begin{enumerate}
+    \item Check if the cache contains the data needed. If so, return the data.
+    \item If the data is not present in the cache, load the block of memory into the cache.
+    \item Return the data.
+\end{enumerate}
+A fully associative cache is parameterized on two aspects: the block size, and the number of blocks that can be stored in the cache.
+
+\begin{example}
+    \textbf{Lets say we have a cache of 4 byte blocks and 4 blocks of storage. What is the size of the cache?}
+
+    \emph{since the cache stores 4 blocks, and each block is 4 bytes. The size of the cache is 16 bytes}
+
+    \textbf{How do we access address $0x3C1$}
+
+    \emph{we split the address into a tag and offset. Since each block is 4 bytes long, the offset needs to be 2 bits inorder to index into those bytes of data ($2^2 = 4$).}
+
+    $$0x3C1 = 0b\overbrace{{\color{orange}1111 \; 0000}}^{\text{tag}}\underbrace{{\color{blue} 01}}_{\text{offset}}$$
+
+    \emph{after which we scan the tags in the table for matches, and if the valid bit is asserted, then our data is in the cache, so we get the byte at the offset ($0b01 = 1)$}
+
+    \textbf{What if the valid bit was off?}
+
+    \emph{This is called a \textbf{cache miss}. We need to go into main memory and load the block into the cache}
+
+
+    \textbf{What if there was not tag matches and the cache is already full of valid data?}
+
+    \emph{This is called a \textbf{cache miss with eviction.} There is different eviction policies used for which block we replace, such as LRU, FIFO, or Random}
+\end{example}
+
+\lecture[07/26/23]{Caches II}
 \end{document}
 
 

@@ -6,3 +6,4 @@ PnHTextbook.pdf
 *.synctex.gz
 *.aux
 *.fdb_latexmk
+*.DS_Store
