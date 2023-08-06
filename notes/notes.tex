@@ -929,7 +929,37 @@ A fully associative cache is parameterized on two aspects: the block size, and t
     \emph{This is called a \textbf{cache miss with eviction.} There is different eviction policies used for which block we replace, such as LRU, FIFO, or Random}
 \end{example}
 
-\lecture[07/26/23]{Caches II}
+\lecture[07/26/23]{Caches II: Direct-Mapped and Set Associative Caches}
+
+\subsection*{Direct Mapped Caches}
+Note we covered the \textbf{fully-associative cache} in lecture 18. This scheme has certain problems.
+\begin{enumerate}
+    \item The first problem is, it's hard to find a good and efficient replacement policy.
+    \item The second problem is that it requires a lot of comparators/circuitry; a comparator for each block in the table to check for tag equality for all spots.
+\end{enumerate}
+
+\begin{center}
+    \begin{tabular}{| c c c |}
+        \hline
+            & Memory Address & \multicolumn{1}{c|}{ }      \\ \hline
+        Tag & Index          & \multicolumn{1}{c|}{Offset} \\ \hline
+    \end{tabular}
+\end{center}
+
+\subsubsection*{Terminology}:
+\begin{itemize}
+    \item Tag: What's the unique ID.
+    \item Index: What row in the table?
+    \item Offset: What column/byte? size is determined by "x-bytes per block" which indicates how long each block is.
+\end{itemize}
+
+
+\subsection*{Set Associative Cache}
+Set associate caches are similar to direct-mapped caches. A direct mapped is a 1 way set associative cache.
+An n way set associative cache is where each index in the table holds N block of data.
+
+
+\lecture[07/27/23]{Caches III: Performance, Multilevel Caches, Coherence}
 \end{document}
 
 
