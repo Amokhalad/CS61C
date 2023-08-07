@@ -960,6 +960,47 @@ An n way set associative cache is where each index in the table holds N block of
 
 
 \lecture[07/27/23]{Caches III: Performance, Multilevel Caches, Coherence}
+\subsection*{Cache Performance Terminology}
+\begin{itemize}
+    \item \textbf{hit rate:} the percetnage of access that result in a hit.
+    \item \textbf{miss rate:} the percentage of access that result in a miss ( 1 - hit rate )
+    \item \textbf{hit time:} how long it takes to check the cache + the \textbf{miss penalty}, which is how long it takes to access main memory after a miss.
+    \item \textbf{Average Memory Access Time} or (\textbf{AMAT}) is the average amount of time it takes for one memory access, given a program.
+\end{itemize}
+
+$$ \text{AMAT} = \text{hit time} + (\text{miss rate} \cdot \text{miss penalty}) $$
+
+\subsection*{Optimizing Cache Hardware}
+Benefits of a larger block size:
+\begin{itemize}
+    \item spatial locality
+    \item Reduces comulsory misses6g
+    \item works well for programs since a program is run instruction by instruction or sequential array accesses
+\end{itemize}
+
+Drawbacks of Larger Block Size
+\begin{itemize}
+    \item Ping Pong Effect. Imagine a cache with only one very very large
+\end{itemize}
+
+\subsection*{Multilevel Caches}
+In out current setup, if a cache hits, then we get fast memory access. If a cache miss, then slow access.
+If we want to make the cache bigger/more complex, hit rate improves, but also hit time. With just one cache, we need to make some tough trade-offs.
+
+The solution to this is to add \textbf{multiple layers of caches}
+/\begin{figure}[h]
+    \centering
+    \includegraphics[scale=1.0]{images/multilevelcaches.png}
+    \caption{Conceptual Organization of Multilevel Caches}
+\end{figure}
+
+Each level of cache is larger than the previous and holds all of the data in the previous cache.
+
+\lecture[07/31/23]{Virtual Memory: I}
+\begin{definition}[Virtual Memory]
+    a technique that uses main memory as a "cache" for secondary storage.
+\end{definition}
+
 \end{document}
 
 
