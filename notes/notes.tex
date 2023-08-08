@@ -1001,6 +1001,39 @@ Each level of cache is larger than the previous and holds all of the data in the
     a technique that uses main memory as a "cache" for secondary storage.
 \end{definition}
 
+\subsection*{Introduction}
+\begin{enumerate}
+    \item VM ensure protection from other programs.
+    \item Gives each process the illusion of a full memory address space that it has completely for itself.
+\end{enumerate}
+
+\subsection*{Indirection}
+With VM, the processor produces a \textbf{virtual address}, which is translated by a combination of hardware and software to \emph{physical address}, which in turn can be used to access main memory.
+
+In other words, blocks of memory (called \textbf{pages}) are mapped from on address space (called virtual address space) to another address space (called physical address space).
+
+We map a virtual address to a physical address, either to RAM address space (or to the Disk since main memory acts like cache for the disk, i.e., not all the memory is in there.)
+
+\subsection*{Paged Memory}
+The concepts at work in virtual memory and in caches are the same, their differing historical roots have lead to the use of different terminology. A virtual memory block is called a \emph{page}, and a virtual memory miss is called a \textbf{page fault}.
+
+Memory is broken into pages and disk access loads an entire page into memory. With this, we can see that memory address are broken into page number (the upper portion of the address), and page offset (lower portion of address)(similar to cache mapping), and that the \textbf{virtual page number is mapped to a physical page number.} Note that the offset is the same for the virtual page and physical page since we map entire virtual pages (offset is relative). So how does this mapping actually work...? Page tables.
+
+\subsection*{Page Tables}
+In virtual memory systems, we locate pages by using a table that indexes the memory; this structure is called a \textbf{page table}, and it resides in memory.
+\begin{definition}[Page Table]
+    The table containing the virtual to physical address translations in a virtual memory system. The table, which is stored in memory, is typically indexed by the virtual page number; each entry in the table contains the physical page number for that virtual page if the page is currently in memory, which is indicated by a valid bit.
+\end{definition}
+
+Each program has it's own page table, which maps the virtual address space of that program to main memory. To indicate the location of the page table in memory, the hardware includes a register that points to the start of the page table; we call this the \emph{page table register}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.38]{images/page-table.png}
+    \caption{Virtual page address mapping to physical page address. We assume a 48-bit address.}
+\end{figure}
+
+\subsection*{Page Faults}
+If the valid bit for a virtual page is off, a page fault occurs. The operating system must be given control. This transfer is done with the exception mechanism. Once the OS gets control, it must find the page in the next level of the memory hierarchy (usually flash memory or disk) and decide where to place the requested page in main memory.
 \end{document}
 
 
